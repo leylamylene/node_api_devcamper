@@ -9,9 +9,10 @@ exports.getBootcamps = (req, res, next) => {
 // @route  GET /api/v1/bootcamps/:id
 //@access Public
 exports.getBootcamp = (req, res, next) => {
-  res
-    .status(200)
-    .json({ success: true, msg: "Show the bootcamp with the specified id " });
+  res.status(200).json({
+    success: true,
+    msg: "Show the bootcamp with the specified id ",
+  });
 };
 
 //@desc Create a new bootcamp
