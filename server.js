@@ -4,14 +4,13 @@ const morgan = require("morgan");
 const connectDb = require("./config/db");
 const errorHandler = require("./middleware/error");
 const colors = require("colors");
-
+dotenv.config({ path: "./config/config.env" });
 // route files
 
 const bootcamps = require("./routes/bootcamps");
 
 // load dot env vars
 
-dotenv.config({ path: "./config/config.env" });
 connectDb();
 const app = express();
 // body parser
