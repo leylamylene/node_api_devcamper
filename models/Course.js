@@ -53,12 +53,9 @@ CourseSchema.statics.getAverageCost = async function (bootcampId) {
   ]);
 
   console.log(`calculating average tuition ${obj[0].averageCost}`.bgMagenta);
-  const bootcampUpdated = await this.model("Bootcamp").findByIdAndUpdate(
-    bootcampId,
-    {
-      averageCost: Math.ceil(obj[0].averageCost / 10) * 10,
-    }
-  );
+  await this.model("Bootcamp").findByIdAndUpdate(bootcampId, {
+    averageCost: Math.ceil(obj[0].averageCost / 10) * 10,
+  });
 };
 // Call getAverageCost before remove
 CourseSchema.pre("deleteOne", function () {
