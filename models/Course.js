@@ -52,7 +52,6 @@ CourseSchema.statics.getAverageCost = async function (bootcampId) {
     },
   ]);
 
-  console.log(`calculating average tuition ${obj[0].averageCost}`.bgMagenta);
   await this.model("Bootcamp").findByIdAndUpdate(bootcampId, {
     averageCost: Math.ceil(obj[0].averageCost / 10) * 10,
   });
