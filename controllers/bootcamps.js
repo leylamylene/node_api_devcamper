@@ -1,5 +1,6 @@
 const geocoder = require("../utils/geocoder");
 const BootCamp = require("../models/Bootcamp");
+
 const ErrorResponse = require("../utils/errorResponse");
 const asyncHandler = require("../middleware/async");
 const path = require("path");
@@ -29,6 +30,16 @@ exports.getBootcamp = asyncHandler(async (req, res, next) => {
 //@route  POST /api/v1/bootcamps/
 //@access Private
 exports.createBootcamp = asyncHandler(async (req, res, next) => {
+  req.body.user = req.user.id;
+
+  //Check fOr published bootcamp
+  const publishedBootcamp = await BootCamp.findOne({ user: req.user.id });
+  // If the user is not the admin , they can only add one bootcamp
+  if (req.user.role != "admin" && publishedBootcamp) {
+    return next(
+      new ErrorResponse(`You can't create more than one bootcamp`, 400)
+    );
+  }
   const bootcamp = await BootCamp.create(req.body);
   res.status(201).json({
     success: true,
@@ -40,13 +51,26 @@ exports.createBootcamp = asyncHandler(async (req, res, next) => {
 // @route  PUT /api/v1/bootcamps/:id
 //@access Private
 exports.updateBootcamp = asyncHandler(async (req, res, next) => {
-  const bootcamp = await BootCamp.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-  });
+  let bootcamp = await BootCamp.findById(req.params.id);
 
   if (!bootcamp) {
-    return res.status(400).json({ success: false });
+    return next(new ErrorResponse("No bootcamp found with the this id", 404));
   }
+
+  //Make sure the user is the bootcamp owner
+  if (bootcamp.user.toString() !== req.user.id && req.user.role !== "admin") {
+    return next(
+      new ErrorResponse(
+        "Only the bootcamp owner or the admin can update the bootcamp",
+        401
+      )
+    );
+  }
+
+  bootcamp = await BootCamp.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
   res.status(200).json({ success: true, data: bootcamp });
 });
 
@@ -58,6 +82,16 @@ exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
   if (!bootcamp) {
     return next(
       new ErrorResponse(`Bootcamp not found with the id of ${req.params.id}`)
+    );
+  }
+
+  //Make sure the user is the bootcamp owner
+  if (bootcamp.user.toString() !== req.user.id && req.user.role !== "admin") {
+    return next(
+      new ErrorResponse(
+        "Only the bootcamp owner or the admin can delete this bootcamp",
+        401
+      )
     );
   }
   bootcamp.deleteOne();
@@ -72,6 +106,16 @@ exports.bootcampPhotoUpload = asyncHandler(async (req, res, next) => {
   if (!bootcamp) {
     return next(
       new ErrorResponse(`Bootcamp not found with the id of ${req.params.id}`)
+    );
+  }
+
+  //Make sure the user is the bootcamp owner
+  if (bootcamp.user.toString() !== req.user.id && req.user.role !== "admin") {
+    return next(
+      new ErrorResponse(
+        "Only the bootcamp owner or the admin can upload this bootcamp",
+        401
+      )
     );
   }
   if (!req.files) {
